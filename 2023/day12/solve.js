@@ -9,12 +9,12 @@ const { resolve } = require('node:path');
 // https://gist.github.com/Nathan-Fenner/781285b77244f06cf3248a04869e7161
 
 /**
- * 
  * @param {string} line
  * @param {number[]} counts
+ * @param {Map<string, number>} stored
  * @returns 
  */
-function cntPermutations(line, counts) {
+function cntPermutations(line, counts, stored) {
 	// no more spring to check, not a valid perm
 	// if line doesn't match counts
 	if (line.length === 0) return counts.length === 0 ? 1 : 0
@@ -31,7 +31,7 @@ function cntPermutations(line, counts) {
 	if (line.length < counts.reduce((acc, cur) => acc + cur) + counts.length - 1) return 0
 
 	// remove good spring as we don't care about those
-	if (line[0] === '.') return cntPermutations(line.slice(1), counts)
+	if (line[0] === '.') return cntPermutations(line.slice(1), counts, stored)
 	
 	// check if there are enough wildcard for current count 
 	// or there are enough '#', else it's not a valid perm 
@@ -44,20 +44,23 @@ function cntPermutations(line, counts) {
 		// than count
 		if (line[count] === "#") return 0
 
-		return cntPermutations(line.slice(count + 1), restOfCounts)
+		return cntPermutations(line.slice(count + 1), restOfCounts, stored)
 	}
 
+	const k = JSON.stringify([line, ...counts])
+	if (stored.has(k)) return stored.get(k)
 	// still check both ways
-	return (
-		cntPermutations("#" + line.slice(1), counts) + cntPermutations("." + line.slice(1), counts)
+	const currentPerm = (
+		cntPermutations("#" + line.slice(1), counts, stored) + cntPermutations("." + line.slice(1), counts, stored)
 	)
+	stored.set(k, currentPerm)
+	return currentPerm
 }
 
 const contents = readFileSync(resolve('./input.txt'), { encoding: 'utf8' });
 const lines = contents.split(/\n/)
 
 let result = 0
-x = 0
 for (const line of lines) {
 	const [inputStr, countsStr] = line.split(" ")
 	const counts = countsStr.split(',').map((value) => parseInt(value))
@@ -65,10 +68,9 @@ for (const line of lines) {
 	// part 2
 	const inputStrP2 = Array(5).fill(inputStr).join('?')
 	const countsP2 = [...counts, ...counts, ...counts, ...counts, ...counts]
+	const stored = new Map()
 
-	result += cntPermutations(inputStrP2, countsP2)
-	x += 1
-	console.log(x, result)
+	result += cntPermutations(inputStrP2, countsP2, stored)
 }
 
 console.log(result)
