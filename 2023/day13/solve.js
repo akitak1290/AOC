@@ -20,39 +20,21 @@ function countRow(block) {
 	return 0
 }
 
-function countColumn(block) {
-	let colIdx = 0
-
-	// check each pair of character in the first row
-	while (colIdx < block[0].length - 1) {
-		// if pair matches
-		if (block[0][colIdx] === block[0][colIdx + 1]) {
-			let offset = 0
-			let match = true
-			
-			// search outwards until either bounds
-			while (colIdx - offset >= 0 && colIdx + offset + 1 < block[0].length) {
-				let rowIdx = 0
-				// check pair in the next rows
-				while (rowIdx < block.length) {
-					if (block[rowIdx][colIdx - offset] !== block[rowIdx][colIdx + offset + 1]) {
-						match = false
-						break
-					}
-					rowIdx += 1
-				}
-				offset += 1
-			}
-			if (match) return colIdx + 1
-		}
-		colIdx += 1
-	}
-
-	return 0
-}
-
 function countTerrain(block) {
-	return countRow(block)*100 + countColumn(block)
+	// count row
+	const rows = countRow(block)*100
+	// count column
+	let tmp = []
+	for (let i = 0; i < block[0].length; i++) {
+		let line = ''
+		for (let j = block.length-1; j >= 0; j--) {
+			line += block[j][i]
+		}
+		tmp.push(line)
+	}
+	const cols = countRow(tmp)
+
+	return rows + cols
 }
 
 const input = readFileSync(resolve('./input.txt'), { encoding: 'utf-8' })
