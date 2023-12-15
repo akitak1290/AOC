@@ -18,20 +18,21 @@ function compareString(str1, str2, len) {
  * @param {number | undefined} exclude
  * @returns {number | null}
  */
-function countRow(block, smudgeCount) {
+function countRow(block, smudgeCount, exclude) {
 	let rowIdx = 0
 	while (rowIdx < block.length - 1) {
 		let dif = compareString(block[rowIdx], block[rowIdx + 1])
+		let smudges = smudgeCount
 		// TODO: prob won't need this if and merge it with while
 		if (dif === 0 || dif === 1) {
 			let offset = 0
 			let fullMatch = true
 			// search outward
-			while (rowIdx - offset >= 0 && rowIdx + offset + 1 <= block.length - 1) {
+			while (offset <= Math.min(rowIdx, block.length - rowIdx - 2)) {
 				dif = compareString(block[rowIdx - offset], block[rowIdx + offset + 1], block[0].length)
 				if (dif > 0) {
-					if (dif === 1 && smudgeCount > 0) {
-						smudgeCount -= 1
+					if (dif === 1 && smudges > 0) {
+						smudges -= 1
 					} else {
 						fullMatch = false
 						break
@@ -39,8 +40,13 @@ function countRow(block, smudgeCount) {
 				}
 				offset += 1
 			}
-			if (fullMatch && smudgeCount === 0) {
-				return rowIdx + 1
+			// AHA!, forgot to exclude result from p1 because
+			// after fixing the smudge, the first result for part 2
+			// can be the same as part 1, which is against the rule for part 2
+			if (fullMatch && smudges === 0) {
+				if ((!exclude) || (exclude && exclude !== rowIdx)) {
+					return rowIdx
+				}
 			}
 		}
 		rowIdx += 1
@@ -52,9 +58,11 @@ function countRow(block, smudgeCount) {
  * 
  * @param {string[]} block 
  * @param {number} smudgeCount
+ * @param {number | undefined} excludeRow
+ * @param {number | undefined} excludeCol
  * @returns {number[]}
  */
-function countTerrain(block, smudgeCount) {
+function countTerrain(block, smudgeCount, excludeRow, excludeCol) {
 	// count column
 	// TODO: refac this?
 	let tmp = []
@@ -65,11 +73,11 @@ function countTerrain(block, smudgeCount) {
 		}
 		tmp.push(line)
 	}
-	const col = countRow(tmp, smudgeCount)
+	const col = countRow(tmp, smudgeCount, excludeCol)
 	// count row
-	const row = countRow(block, smudgeCount)
+	const row = countRow(block, smudgeCount, excludeRow)
 
-	return row*100 + col
+	return [row, col]
 }
 
 const input = readFileSync(resolve('./input.txt'), { encoding: 'utf-8' })
@@ -94,8 +102,10 @@ let resultP2 = 0
 for (const block of blocks) {
 	// the parsing thing to add 1 is an eyesore...
 	// TODO: update logic?
-	resultP1 += countTerrain(block, 0)
-	resultP2 += countTerrain(block, 1)
+	const [rowF, colF] = countTerrain(block, 0)
+	resultP1 += (rowF === null ? 0 : rowF+1)*100 + (colF === null ? 0 : colF+1)
+	const [rowS, colS] = countTerrain(block, 1, rowF, colF)
+	resultP2 += (rowS === null ? 0 : rowS+1)*100 + (colS === null ? 0 : colS+1)
 }
 
 console.log(resultP1, resultP2)
