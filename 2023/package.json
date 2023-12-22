@@ -1,13 +1,13 @@
 {
-  "name": "2023",
+  "name": "2023AOC",
   "version": "1.0.0",
   "description": "",
-  "main": "fetchInput.js",
+  "main": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Kien Nguyen",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
